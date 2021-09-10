@@ -2,6 +2,6 @@ name: MomentoPerIslandEnvoys
 version: '${project.version}'
 main: ca.dannyferguson.momentoperislandenvoys.MomentoPerIslandEnvoys
 api-version: 1.16
-depend: [SuperiorSkyblock2]
+depend: [SuperiorSkyblock2, PlaceholderAPI]
 commands:
   testenvoy:

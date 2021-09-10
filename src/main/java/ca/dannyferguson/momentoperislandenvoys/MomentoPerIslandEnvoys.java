@@ -2,6 +2,7 @@ package ca.dannyferguson.momentoperislandenvoys;
 
 import ca.dannyferguson.momentoperislandenvoys.commands.TestEnvoyCommand;
 import ca.dannyferguson.momentoperislandenvoys.listeners.EnvoyChestOpenListener;
+import ca.dannyferguson.momentoperislandenvoys.placeholderapi.PAPIExtension;
 import ca.dannyferguson.momentoperislandenvoys.utils.Chat;
 import ca.dannyferguson.momentoperislandenvoys.utils.Executor;
 import ca.dannyferguson.momentoperislandenvoys.utils.Logger;
@@ -13,6 +14,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
@@ -21,11 +23,13 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 public final class MomentoPerIslandEnvoys extends JavaPlugin {
     private Map<Double, String> ODDS;
-    private Map<Location, ArmorStand> LOCATIONS;
+    private Map<Location, List<ArmorStand>> LOCATIONS;
     private List<String> COMMANDS;
+    private long nextEnvoy = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(60);
 
     @Override
     public void onEnable() {
@@ -49,6 +53,15 @@ public final class MomentoPerIslandEnvoys extends JavaPlugin {
 
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(new EnvoyChestOpenListener(this), this);
+
+        new PAPIExtension(this).register();
+
+        Executor.syncRepeating(() -> {
+            if ((nextEnvoy - System.currentTimeMillis()) < 0) {
+                startEnvoy();
+                nextEnvoy = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(60);
+            }
+        }, 100);
     }
 
     private void loadPossibleDrops() {
@@ -123,9 +136,21 @@ public final class MomentoPerIslandEnvoys extends JavaPlugin {
         as.setCustomNameVisible(true);
         as.setVisible(false);
 
+        ArmorStand as2 = (ArmorStand) loc.getWorld().spawnEntity(new Location(loc.getWorld(), loc.getX(), loc.getY() - 1.3, loc.getZ()), EntityType.ARMOR_STAND);
+        as2.setGravity(false);
+        as2.setCanPickupItems(false);
+        as2.setInvulnerable(true);
+        as2.setCustomName(Chat.format("&eClick to open!"));
+        as2.setCustomNameVisible(true);
+        as2.setVisible(false);
+
+        List<ArmorStand> armorStands = new ArrayList<>();
+        armorStands.add(as);
+        armorStands.add(as2);
+
         loc.getWorld().strikeLightningEffect(loc);
 
-        LOCATIONS.put(loc, as);
+        LOCATIONS.put(loc, armorStands);
     }
 
     public String formatLocation(Location location) {
@@ -149,7 +174,7 @@ public final class MomentoPerIslandEnvoys extends JavaPlugin {
         int removed = 0;
         for (Location loc : LOCATIONS.keySet()) {
             loc.getBlock().setType(Material.AIR, false);
-            LOCATIONS.get(loc).remove();
+            LOCATIONS.get(loc).forEach(Entity::remove);
             removed++;
         }
         LOCATIONS.clear();
@@ -165,7 +190,11 @@ public final class MomentoPerIslandEnvoys extends JavaPlugin {
         return COMMANDS.get(ThreadLocalRandom.current().nextInt(0, COMMANDS.size()));
     }
 
-    public Map<Location, ArmorStand> getLOCATIONS() {
+    public Map<Location, List<ArmorStand>> getLOCATIONS() {
         return LOCATIONS;
+    }
+
+    public long getNextEnvoy() {
+        return nextEnvoy;
     }
 }

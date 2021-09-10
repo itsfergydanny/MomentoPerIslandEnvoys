@@ -10,11 +10,14 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+
+import java.util.List;
 
 public class EnvoyChestOpenListener implements Listener {
     private MomentoPerIslandEnvoys plugin;
@@ -55,10 +58,15 @@ public class EnvoyChestOpenListener implements Listener {
 
         block.setType(Material.AIR);
 
-        ArmorStand armorStand = plugin.getLOCATIONS().remove(loc);
-        if (armorStand != null) {
-            armorStand.remove();
+        List<ArmorStand> armorStands = plugin.getLOCATIONS().remove(loc);
+        if (armorStands != null) {
+            armorStands.forEach(Entity::remove);
             String command = plugin.getRandomCommand().replace("<player>", player.getName());
+            if (command.startsWith("give ")) {
+                String amount = command.split(" ")[3];
+                String itemName = command.split(" ")[2].replace("_", " ");
+                player.sendMessage(Chat.format("&aYou have found: &f" + amount + "x " + itemName));
+            }
             Logger.info("Dispatching command: " + command);
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
         }
