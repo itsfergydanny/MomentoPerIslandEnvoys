@@ -5,3 +5,4 @@ api-version: 1.16
 depend: [SuperiorSkyblock2, PlaceholderAPI]
 commands:
   testenvoy:
+  envoy:

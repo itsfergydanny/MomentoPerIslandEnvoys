@@ -1,5 +1,6 @@
 package ca.dannyferguson.momentoperislandenvoys;
 
+import ca.dannyferguson.momentoperislandenvoys.commands.EnvoyCommand;
 import ca.dannyferguson.momentoperislandenvoys.commands.TestEnvoyCommand;
 import ca.dannyferguson.momentoperislandenvoys.listeners.EnvoyChestOpenListener;
 import ca.dannyferguson.momentoperislandenvoys.placeholderapi.PAPIExtension;
@@ -50,6 +51,7 @@ public final class MomentoPerIslandEnvoys extends JavaPlugin {
         }
 
         getCommand("testenvoy").setExecutor(new TestEnvoyCommand(this));
+        getCommand("envoy").setExecutor(new EnvoyCommand(this));
 
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(new EnvoyChestOpenListener(this), this);
