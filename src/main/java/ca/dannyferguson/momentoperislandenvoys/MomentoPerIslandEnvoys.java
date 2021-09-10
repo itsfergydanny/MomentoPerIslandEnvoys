@@ -2,7 +2,6 @@ package ca.dannyferguson.momentoperislandenvoys;
 
 import ca.dannyferguson.momentoperislandenvoys.commands.TestEnvoyCommand;
 import ca.dannyferguson.momentoperislandenvoys.listeners.EnvoyChestOpenListener;
-import ca.dannyferguson.momentoperislandenvoys.objects.FixedLocation;
 import ca.dannyferguson.momentoperislandenvoys.utils.Chat;
 import ca.dannyferguson.momentoperislandenvoys.utils.Executor;
 import ca.dannyferguson.momentoperislandenvoys.utils.Logger;
@@ -25,7 +24,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public final class MomentoPerIslandEnvoys extends JavaPlugin {
     private Map<Double, String> ODDS;
-    private Map<FixedLocation, ArmorStand> LOCATIONS;
+    private Map<Location, ArmorStand> LOCATIONS;
     private List<String> COMMANDS;
 
     @Override
@@ -114,9 +113,6 @@ public final class MomentoPerIslandEnvoys extends JavaPlugin {
     }
 
     private void spawnBox(Location loc) {
-        loc = FixedLocation.fromLocation(loc).toLocation();
-
-        Logger.info("Spawning crate for at " + formatLocation(loc));
         loc.getBlock().setType(Material.CHEST);
 
         ArmorStand as = (ArmorStand) loc.getWorld().spawnEntity(new Location(loc.getWorld(), loc.getX(), loc.getY() - 1, loc.getZ()), EntityType.ARMOR_STAND);
@@ -127,7 +123,9 @@ public final class MomentoPerIslandEnvoys extends JavaPlugin {
         as.setCustomNameVisible(true);
         as.setVisible(false);
 
-        LOCATIONS.put(FixedLocation.fromLocation(loc), as);
+        loc.getWorld().strikeLightningEffect(loc);
+
+        LOCATIONS.put(loc, as);
     }
 
     public String formatLocation(Location location) {
@@ -140,8 +138,8 @@ public final class MomentoPerIslandEnvoys extends JavaPlugin {
         int randomZ = ThreadLocalRandom.current().nextInt(30);
         for (int j = 0; j < 5; j ++) {
             Location random = center.clone().add(randomX, randomY, randomZ);
-            if (random.getBlock().isEmpty() && !LOCATIONS.containsKey(FixedLocation.fromLocation(random))) {
-                return FixedLocation.fromLocation(random).toLocation();
+            if (random.getBlock().isEmpty() && !LOCATIONS.containsKey(random)) {
+                return random;
             }
         }
         return null;
@@ -149,11 +147,9 @@ public final class MomentoPerIslandEnvoys extends JavaPlugin {
 
     public void stopEnvoy() {
         int removed = 0;
-        for (FixedLocation fixedLocation : LOCATIONS.keySet()) {
-            Location loc = new Location(fixedLocation.getWorld(), fixedLocation.getX(), fixedLocation.getY(), fixedLocation.getZ());
-            Logger.info("REMOVING BLOCK AT " + loc.toString());
+        for (Location loc : LOCATIONS.keySet()) {
             loc.getBlock().setType(Material.AIR, false);
-            LOCATIONS.get(fixedLocation).remove();
+            LOCATIONS.get(loc).remove();
             removed++;
         }
         LOCATIONS.clear();
@@ -169,7 +165,7 @@ public final class MomentoPerIslandEnvoys extends JavaPlugin {
         return COMMANDS.get(ThreadLocalRandom.current().nextInt(0, COMMANDS.size()));
     }
 
-    public Map<FixedLocation, ArmorStand> getLOCATIONS() {
+    public Map<Location, ArmorStand> getLOCATIONS() {
         return LOCATIONS;
     }
 }

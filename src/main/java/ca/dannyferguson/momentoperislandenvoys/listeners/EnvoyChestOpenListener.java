@@ -1,7 +1,6 @@
 package ca.dannyferguson.momentoperislandenvoys.listeners;
 
 import ca.dannyferguson.momentoperislandenvoys.MomentoPerIslandEnvoys;
-import ca.dannyferguson.momentoperislandenvoys.objects.FixedLocation;
 import ca.dannyferguson.momentoperislandenvoys.utils.Chat;
 import ca.dannyferguson.momentoperislandenvoys.utils.Logger;
 import com.bgsoftware.superiorskyblock.api.SuperiorSkyblockAPI;
@@ -38,15 +37,9 @@ public class EnvoyChestOpenListener implements Listener {
             return;
         }
 
-        Location loc = block.getLocation();
-        player.sendMessage("loc=" + FixedLocation.fromLocation(loc));
-        player.sendMessage("possible locs =");
-        plugin.getLOCATIONS().keySet().forEach(loci -> {
-            player.sendMessage(loci.toString());
-        });
+        Location loc = block.getLocation().clone().add(0.5, 0, 0.5);
 
-        if (!plugin.getLOCATIONS().containsKey(FixedLocation.fromLocation(loc))) {
-            player.sendMessage("doesnt contain loc");
+        if (!plugin.getLOCATIONS().containsKey(loc)) {
             return;
         }
 
@@ -62,7 +55,7 @@ public class EnvoyChestOpenListener implements Listener {
 
         block.setType(Material.AIR);
 
-        ArmorStand armorStand = plugin.getLOCATIONS().remove(FixedLocation.fromLocation(loc));
+        ArmorStand armorStand = plugin.getLOCATIONS().remove(loc);
         if (armorStand != null) {
             armorStand.remove();
             String command = plugin.getRandomCommand().replace("<player>", player.getName());
