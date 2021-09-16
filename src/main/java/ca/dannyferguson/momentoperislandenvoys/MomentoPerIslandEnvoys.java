@@ -30,11 +30,14 @@ public final class MomentoPerIslandEnvoys extends JavaPlugin {
     private Map<Double, String> ODDS;
     private Map<Location, List<ArmorStand>> LOCATIONS;
     private List<String> COMMANDS;
-    private long nextEnvoy = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(60);
+    private long nextEnvoy;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
+
+        nextEnvoy = getConfig().getLong("next", System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(60));
+
         Executor.init(this);
         Logger.init(this);
 
@@ -176,16 +179,40 @@ public final class MomentoPerIslandEnvoys extends JavaPlugin {
         int removed = 0;
         for (Location loc : LOCATIONS.keySet()) {
             loc.getBlock().setType(Material.AIR, false);
+            LOCATIONS.get(loc).forEach(armorStand -> {
+                if (armorStand != null) {
+                    armorStand.remove();
+                }
+            });
             LOCATIONS.get(loc).forEach(Entity::remove);
             removed++;
         }
         LOCATIONS.clear();
         Logger.info("Removed " + removed + " existing envoys.");
+
+        Logger.info("Clearing residual holograms..");
+        int count = 0;
+        World world = Bukkit.getWorld("SuperiorWorld");
+        if (world != null) {
+            for(Entity entity : world.getEntities()) {
+                if (!entity.getType().equals(EntityType.ARMOR_STAND)) {
+                    continue;
+                }
+                if (!entity.getName().equals(Chat.format("&c&lLOOT BOX")) && !entity.getName().equals(Chat.format("&eClick to open!"))) {
+                    continue;
+                }
+                entity.remove();
+                count++;
+            }
+        }
+        Logger.info("Cleared " + count + " residual holograms!");
     }
 
     @Override
     public void onDisable() {
         stopEnvoy();
+        getConfig().set("next", nextEnvoy);
+        saveConfig();
     }
 
     public String getRandomCommand() {

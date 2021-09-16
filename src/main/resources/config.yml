@@ -1,3 +1,4 @@
+next: null
 # Format: <chance>:<command>. You may use <player> to replace it with the name of the player clicking the chest.
 commands:
   - '3:crate give to <player> stratospheric 1'
